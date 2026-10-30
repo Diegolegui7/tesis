@@ -54,7 +54,7 @@ cabecera_personal('Pedidos de clientes', 'pedidos');
                 <td><?= e($s['pod']) ?> · <?= e($s['buque']) ?><div class="chico suave"><?= e($s['naviera']) ?> · sale <?= e(f_fecha($s['etd'])) ?></div></td>
                 <td class="envolver" style="min-width:240px"><strong><?= (int) $s['cantidad'] ?> × <?= e($s['tipo_contenedor']) ?></strong> · <?= e(dinero($s['flete'] * $s['cantidad'])) ?>
                   <?php if ($s['carga']) { ?><div class="chico suave">Carga: <?= e($s['carga']) ?></div><?php } ?>
-                  <?php if ($s['comentario']) { ?><div class="chico suave">«<?= e($s['comentario']) ?>»</div><?php } ?></td>
+                  <?php if ($s['comentario']) { ?><div class="chico suave">“<?= e($s['comentario']) ?>”</div><?php } ?></td>
                 <td class="envolver" style="min-width:200px">
                   <?php if ($puede) { ?>
                   <form action="pedidos.php" method="post" style="display:inline"><?= csrf_campo() ?><input type="hidden" name="accion" value="aceptar"><input type="hidden" name="id" value="<?= (int) $s['id'] ?>">

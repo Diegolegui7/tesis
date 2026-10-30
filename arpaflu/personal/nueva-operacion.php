@@ -110,12 +110,12 @@ $cotizaciones = consulta(
 $participantes = consulta('SELECT id, cliente_id, nombre, rol FROM participantes WHERE activo = 1 ORDER BY cliente_id, rol, nombre');
 $etiq_rol = ['contacto' => 'contacto principal', 'despachante' => 'despachante', 'otro' => 'otro contacto'];
 
-cabecera_personal('Nueva operación', 'operaciones');
+cabecera_personal('Nueva reserva', 'operaciones');
 ?>
       <div class="encabezado-pagina">
         <div>
-          <div class="migas"><a href="operaciones.php">Operaciones</a> / Nueva</div>
-          <h1>Nueva operación</h1>
+          <div class="migas"><a href="operaciones.php">Reservas</a> / Nueva</div>
+          <h1>Nueva reserva</h1>
           <p>Se crea al solicitar el espacio a la naviera, aunque todavía no tenga booking. Los datos que falten se completan después.</p>
         </div>
       </div>
@@ -169,7 +169,7 @@ cabecera_personal('Nueva operación', 'operaciones');
               </select>
             </div>
             <div class="campo">
-              <label for="buque">Buque y viaje</label>
+              <label for="buque">Barco y viaje</label>
               <input type="text" id="buque" name="buque" maxlength="120" value="<?= e($v['buque']) ?>" list="lista-buques" placeholder="A confirmar">
               <datalist id="lista-buques"><?php foreach ($buques as $b) { ?><option value="<?= e($b['nombre']) ?>"><?php } ?></datalist>
             </div>
@@ -233,19 +233,19 @@ cabecera_personal('Nueva operación', 'operaciones');
           <legend>Fechas</legend>
           <div class="campos">
             <div class="campo">
-              <label for="etd">ETD (zarpe estimado)</label>
+              <label for="etd">Salida estimada (<?= termino_p('ETD') ?>)</label>
               <input type="text" id="etd" name="etd" value="<?= e($v['etd']) ?>" placeholder="dd/mm/aaaa">
             </div>
             <div class="campo">
-              <label for="eta">ETA (arribo estimado)</label>
+              <label for="eta">Llegada estimada (<?= termino_p('ETA') ?>)</label>
               <input type="text" id="eta" name="eta" value="<?= e($v['eta']) ?>" placeholder="dd/mm/aaaa">
             </div>
             <div class="campo">
-              <label for="cutoff-doc">Cut-off documental</label>
+              <label for="cutoff-doc">Límite para los documentos (<?= termino_p('Cut-off documental', 'cut-off') ?>)</label>
               <input type="text" id="cutoff-doc" name="cutoff_documental" value="<?= e($v['cutoff_documental']) ?>" placeholder="dd/mm/aaaa hh:mm">
             </div>
             <div class="campo">
-              <label for="cutoff-fis">Cut-off físico</label>
+              <label for="cutoff-fis">Límite para llevar la carga (<?= termino_p('Cut-off físico', 'cut-off físico') ?>)</label>
               <input type="text" id="cutoff-fis" name="cutoff_fisico" value="<?= e($v['cutoff_fisico']) ?>" placeholder="dd/mm/aaaa hh:mm">
             </div>
           </div>

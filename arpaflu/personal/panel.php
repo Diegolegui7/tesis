@@ -49,7 +49,7 @@ foreach (consulta(
     'SELECT c.destinatario_nombre, c.evento, o.id AS op_id, o.referencia FROM comunicaciones c JOIN operaciones o ON o.id = c.operacion_id
      WHERE c.requiere_notado = 1 AND c.notado_en IS NULL AND c.plazo_notado < NOW() ORDER BY c.plazo_notado LIMIT 3'
 ) as $r) {
-    $atencion[] = ['«Notado» vencido', $r['destinatario_nombre'] . ' (' . $r['referencia'] . ') no confirmó: ' . mb_strtolower($r['evento']), 'operacion.php?id=' . $r['op_id'] . '#comunicaciones'];
+    $atencion[] = ['“Notado” vencido', $r['destinatario_nombre'] . ' (' . $r['referencia'] . ') no confirmó: ' . mb_strtolower($r['evento']), 'operacion.php?id=' . $r['op_id'] . '#comunicaciones'];
 }
 foreach (consulta(
     'SELECT c.destinatario_correo, o.referencia FROM comunicaciones c LEFT JOIN operaciones o ON o.id = c.operacion_id
@@ -86,7 +86,7 @@ cabecera_personal('Panel', 'panel');
           </form>
           <?php } ?>
           <?php if (puede('crear_operaciones')) { ?>
-          <a href="nueva-operacion.php" class="boton boton-primario">+ Nueva operación</a>
+          <a href="nueva-operacion.php" class="boton boton-primario">+ Nueva reserva</a>
           <?php } ?>
         </div>
       </div>
@@ -100,7 +100,7 @@ cabecera_personal('Panel', 'panel');
         <?php } ?>
         <div class="indicador">
           <div class="indicador-valor"><?= $n_activas ?></div>
-          <div class="indicador-texto">Operaciones activas</div>
+          <div class="indicador-texto">Reservas activas</div>
         </div>
         <div class="indicador <?= $n_cutoffs ? 'alerta' : '' ?>">
           <div class="indicador-valor"><?= $n_cutoffs ?></div>
@@ -112,7 +112,7 @@ cabecera_personal('Panel', 'panel');
         </div>
         <div class="indicador <?= $n_notado ? 'peligro' : '' ?>">
           <div class="indicador-valor"><?= $n_notado ?></div>
-          <div class="indicador-texto">«Notado» sin confirmar en plazo</div>
+          <div class="indicador-texto">“Notado” sin confirmar en plazo</div>
         </div>
         <div class="indicador <?= $n_fallidos ? 'peligro' : '' ?>">
           <div class="indicador-valor"><?= $n_fallidos ?></div>
@@ -124,7 +124,7 @@ cabecera_personal('Panel', 'panel');
         <section class="tarjeta">
           <div class="tarjeta-cabecera">
             <h2>Próximos vencimientos</h2>
-            <a href="operaciones.php" class="chico">Ver todas las operaciones</a>
+            <a href="operaciones.php" class="chico">Ver todas las reservas</a>
           </div>
           <div class="tabla-contenedor">
             <table>

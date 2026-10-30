@@ -41,7 +41,7 @@ if (es_post()) {
          VALUES (?,?,?,?,?,?,?,?,?,?,?,?,"disponible")',
         [$cliente_id, $grupo, $carga !== '' ? $carga : null, $etiqueta, $naviera, $buque, $via !== '' ? $via : 'Directa', $etd, $eta, $cut, $flete, $libres !== '' ? (int) $libres : null]
     );
-    flash('ok', 'Alternativa ' . $etiqueta . ' cargada en «' . $grupo . '». ' . $c['empresa'] . ' ya puede elegirla desde su portal.');
+    flash('ok', 'Alternativa ' . $etiqueta . ' cargada en “' . $grupo . '”. ' . $c['empresa'] . ' ya puede elegirla desde su portal.');
     redirigir('alternativas.php');
 }
 

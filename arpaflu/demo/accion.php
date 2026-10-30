@@ -21,6 +21,11 @@ try {
         if ($r !== true) { $fin(['ok' => false, 'error' => $r]); }
         $fin(['ok' => true, 'redirect' => inicio_segun_tipo(usuario_actual())]);
     }
+    if ($accion === 'reiniciar') {
+        reinstalar_base(true);
+        unset($_SESSION['usuario']);
+        $fin(['ok' => true, 'redirect' => base_url() . 'index.php']);
+    }
     if (!demo_activa()) { $fin(['ok' => false, 'error' => 'La guía no está activa.']); }
     if ($accion === 'saltar') {
         $e = demo_estado();
@@ -34,11 +39,6 @@ try {
     if ($accion === 'ocultar') {
         demo_set('activo', '0');
         $fin(['ok' => true]);
-    }
-    if ($accion === 'reiniciar') {
-        reinstalar_base(true);
-        unset($_SESSION['usuario']);
-        $fin(['ok' => true, 'redirect' => base_url() . 'index.php']);
     }
     $fin(['ok' => false, 'error' => 'Acción desconocida']);
 } catch (Exception $ex) {

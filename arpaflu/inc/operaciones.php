@@ -36,7 +36,7 @@ function cargar_operacion($id)
     );
 }
 
-// Campos que se pueden cambiar con «Registrar cambio» (P8)
+// Campos que se pueden cambiar con “Registrar cambio” (P8)
 function datos_cambiables()
 {
     return [
@@ -146,13 +146,20 @@ function registrar_cambio($op, $usuario, $dato, $nuevo, $origen, $detalle, $avis
 
     // Avisos
     $evento = $def['tipo'] === 'roleo' ? 'Cambio de buque y fechas' : ($dato === 'Novedad posterior al zarpe' ? $dato : 'Cambio de ' . mb_strtolower($dato));
+    $frases = [
+        'Roleo: cambio de buque' => 'El barco cambió', 'Buque' => 'El barco cambió', 'ETD' => 'La fecha de salida cambió', 'ETA' => 'La fecha de llegada cambió',
+        'Cut-off documental' => 'El último momento para entregar los documentos cambió', 'Cut-off físico' => 'El último momento para llevar la carga al puerto cambió',
+        'Fecha límite de VGM' => 'El plazo para informar el peso (VGM) cambió', 'Terminal' => 'La terminal cambió',
+    ];
     $lineas = [];
+    $amigables = [];
     foreach ($items as $it) {
         $lineas[] = '- ' . $it[0] . ': ' . ($it[1] !== '' ? $it[1] : '(sin dato)') . ' → ' . $it[2];
+        $amigables[] = '- ' . (isset($frases[$it[0]]) ? $frases[$it[0]] : $it[0] . ' cambió') . ': antes ' . ($it[1] !== '' ? $it[1] : '(sin dato)') . ', ahora ' . $it[2] . '.';
     }
-    $cuerpo = 'Se registró un cambio en la operación ' . $op['referencia'] . ' (' . $op['empresa'] . "):\n" . implode("\n", $lineas)
-        . "\nOrigen: " . $origen . ($detalle !== '' ? "\nDetalle: " . $detalle : '')
-        . "\n\nPor favor confirmá con «Notado» desde el portal de ARPAFLU o respondiendo este correo.";
+    $cuerpo = 'Hubo un cambio en tu reserva ' . $op['referencia'] . ' (' . $op['empresa'] . "):\n" . implode("\n", $amigables)
+        . "\nQuién lo informó: " . $origen . ($detalle !== '' ? "\nDetalle: " . $detalle : '')
+        . "\n\nPor favor confirmá que lo leíste tocando “Notado” en el portal de ARPAFLU, o respondiendo este correo.";
     $asunto = $op['referencia'] . ' · ' . $evento;
 
     $ids = [];
@@ -182,7 +189,7 @@ function guardar_documento($op, $usuario, $tipo, $estado, $origen, $obs, $visibl
         if (is_string($archivo)) { return [false, $archivo]; }
         list($nombre, $ruta) = $archivo;
     } elseif ($estado !== 'solicitado') {
-        return [false, 'Adjuntá el archivo (solo un documento «solicitado» puede cargarse sin archivo).'];
+        return [false, 'Adjuntá el archivo (solo un documento “solicitado” puede cargarse sin archivo).'];
     }
     $version = 1 + (int) valor('SELECT COALESCE(MAX(version), 0) FROM documentos WHERE operacion_id = ? AND tipo = ?', [$op['id'], $tipo]);
     ejecutar(

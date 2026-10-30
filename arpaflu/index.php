@@ -84,6 +84,15 @@ if (MODO_DEMO) {
             <?php } ?>
           </div>
         </form>
+        <p class="chico" style="margin-top:14px"><button type="button" id="demo-reiniciar-login" class="boton boton-secundario boton-chico">Empezar la demostración guiada desde el principio</button>
+          <span class="suave">Vuelve a cargar los datos de ejemplo y muestra la guía.</span></p>
+        <script>
+        document.getElementById('demo-reiniciar-login').addEventListener('click', function () {
+          if (!confirm('Se vuelven a cargar los datos de ejemplo y se pierde lo que hayas hecho en la demostración. ¿Seguir?')) { return; }
+          var f = new FormData(); f.append('csrf', document.querySelector('input[name=csrf]').value); f.append('accion', 'reiniciar');
+          fetch('demo/accion.php', { method: 'POST', body: f, credentials: 'same-origin' }).then(function (r) { return r.json(); }).then(function (d) { if (d.ok) { location.href = 'index.php'; } else { alert(d.error || 'No se pudo reiniciar.'); } });
+        });
+        </script>
         <?php } ?>
       </div>
     </section>

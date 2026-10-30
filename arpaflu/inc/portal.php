@@ -1,5 +1,5 @@
 <?php
-// Portal de clientes · lenguaje simple: glosario, estados en palabras de todos los días, barra de progreso y «qué tenés que hacer ahora»
+// Portal de clientes · lenguaje simple: glosario, estados en palabras de todos los días, barra de progreso y “qué tenés que hacer ahora”
 require_once __DIR__ . '/util.php';
 
 function glosario()
@@ -77,7 +77,7 @@ function que_hacer_ahora($op, $notado_pendientes, $docs_faltan)
     $abierta = !in_array($op['estado'], ['zarpado', 'cancelada'], true);
     if ($op['estado'] === 'cancelada') { return ['Esta reserva está cancelada', 'No tenés nada para hacer.', null, 'aviso-info']; }
     if ($notado_pendientes > 0) {
-        return ['Confirmá que leíste el aviso de ARPAFLU', 'Hay una novedad en tu reserva. Leela y tocá el botón «Notado» para avisarnos que la viste.', ['Ir al aviso', '#avisos'], 'aviso-alerta'];
+        return ['Confirmá que leíste el aviso de ARPAFLU', 'Hay una novedad en tu reserva. Leela y tocá el botón “Notado” para avisarnos que la viste.', ['Ir al aviso', '#avisos'], 'aviso-alerta'];
     }
     if ($abierta && $docs_faltan) {
         $limite = $op['cutoff_doc'] ? ' antes del ' . f_hora($op['cutoff_doc']) : '';
@@ -105,8 +105,51 @@ function pendientes_cliente($op_id)
     return [$n, $docs];
 }
 
-// Vista del personal: «simple» (por defecto: menú corto y tareas del día) o «completa» (todas las secciones)
+// Vista del personal: “simple” (por defecto: menú corto y tareas del día) o “completa” (todas las secciones)
 function vista_simple()
 {
     return !isset($_COOKIE['vista']) || $_COOKIE['vista'] !== 'completa';
+}
+
+// Glosario para el personal: las mismas palabras técnicas, explicadas para quien recién empieza
+function glosario_personal()
+{
+    return [
+        'Booking' => 'Número con el que la naviera confirma que el lugar en el barco está asegurado.',
+        'Orden de retiro' => 'Autorización de la naviera para retirar el contenedor vacío y cargarlo.',
+        'Cut-off documental' => 'Fecha y hora límite para entregarle los documentos a la naviera.',
+        'Cut-off físico' => 'Fecha y hora límite para llevar el contenedor cargado al puerto.',
+        'ETD' => 'Fecha estimada en que el barco sale del puerto.',
+        'ETA' => 'Fecha estimada en que el barco llega al destino.',
+        'VGM' => 'Peso verificado del contenedor cargado. Sin él no se puede embarcar.',
+        'DRAFT' => 'Borrador del documento de embarque, para revisarlo antes del definitivo.',
+        'DECLA' => 'Declaración con los datos de la carga, necesaria para preparar el embarque.',
+        'Roleo' => 'La naviera pasa la carga a otro barco o a otra fecha.',
+        'POL' => 'Puerto de carga: de donde sale la mercadería.',
+        'POD' => 'Puerto de destino: adonde llega la mercadería.',
+        'Notado' => 'Confirmación del cliente de que leyó un aviso importante.',
+        'Días libres' => 'Días que el cliente puede tener el contenedor en destino sin pagar recargo.',
+        'Terminal' => 'Lugar del puerto donde se entrega o se retira el contenedor.',
+        'Despachante' => 'Persona o empresa que hace los trámites de aduana por el cliente.',
+        'Flete' => 'Precio del transporte por cada contenedor.',
+        'Transbordo' => 'El contenedor cambia de barco en un puerto intermedio.',
+    ];
+}
+
+function termino_p($clave, $texto = null)
+{
+    $g = glosario_personal();
+    $t = $texto !== null ? $texto : $clave;
+    if (!isset($g[$clave])) { return e($t); }
+    return '<span class="termino" tabindex="0" data-ayuda="' . e($g[$clave]) . '">' . e($t) . '<span class="termino-i" aria-hidden="true">?</span></span>';
+}
+
+// Qué le falta a una reserva, en pocas palabras (listados del personal)
+function que_falta($o)
+{
+    if ($o['estado'] === 'cancelada') { return 'Cancelada'; }
+    if ($o['estado'] === 'zarpado') { return 'Nada: el barco ya salió'; }
+    if (!$o['booking']) { return 'El número de booking'; }
+    if (!$o['orden_retiro']) { return 'La orden de retiro'; }
+    return 'Que salga el barco';
 }

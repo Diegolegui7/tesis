@@ -41,26 +41,28 @@ function cabecera_personal($titulo, $activo)
       <?= $item('clientes', 'clientes.php', 'Clientes') ?>
       <?= $item('avisos', 'avisos.php', 'Avisos enviados', $pend > 0 ? ' <span class="contador">' . $pend . '</span>' : '') ?>
       <?php if (puede('administrar_usuarios')) echo $item('usuarios', 'usuarios.php', 'Personas y permisos'); ?>
+      <?= $item('ayuda', 'ayuda.php', 'Ayuda') ?>
       <?php } else { ?>
       <li class="menu-titulo">Operación</li>
       <?= $item('inicio', 'inicio.php', 'Inicio') ?>
       <?= $item('panel', 'panel.php', 'Panel') ?>
-      <?= $item('operaciones', 'operaciones.php', 'Operaciones') ?>
+      <?= $item('operaciones', 'operaciones.php', 'Reservas') ?>
       <?php if (puede('crear_operaciones')) echo $item('pedidos', 'pedidos.php', 'Pedidos de clientes', $ped > 0 ? ' <span class="contador">' . $ped . '</span>' : ''); ?>
-      <?php if (puede('crear_operaciones')) echo $item('disponibilidad', 'disponibilidad.php', 'Disponibilidad'); ?>
+      <?php if (puede('crear_operaciones')) echo $item('disponibilidad', 'disponibilidad.php', 'Lugar disponible'); ?>
       <?php if (puede('cotizaciones')) echo $item('cotizaciones', 'cotizaciones.php', 'Cotizaciones'); ?>
       <?php if (puede('crear_operaciones')) echo $item('alternativas', 'alternativas.php', 'Alternativas'); ?>
       <?= $item('clientes', 'clientes.php', 'Clientes') ?>
-      <?= $item('avisos', 'avisos.php', 'Avisos', $pend > 0 ? ' <span class="contador">' . $pend . '</span>' : '') ?>
+      <?= $item('avisos', 'avisos.php', 'Avisos enviados', $pend > 0 ? ' <span class="contador">' . $pend . '</span>' : '') ?>
       <?php if (puede('administrar_usuarios')) { ?>
       <li class="menu-titulo">Administración</li>
-      <?= $item('usuarios', 'usuarios.php', 'Usuarios y permisos') ?>
+      <?= $item('usuarios', 'usuarios.php', 'Personas y permisos') ?>
       <?php } ?>
+      <?= $item('ayuda', 'ayuda.php', 'Ayuda') ?>
       <?php } ?>
     </ul>
     <div class="lateral-pie">
       <strong><?= e($u['nombre']) ?></strong>
-      <?= e(etiqueta_rol($u['rol'])) ?> · <a href="<?= e($b) ?>salir.php">Salir</a>
+      <?= e(etiqueta_rol($u['rol'])) ?> · <a href="<?= e($b) ?>cambiar-clave.php">Mi clave</a> · <a href="<?= e($b) ?>salir.php">Salir</a>
       <a class="cambiar-vista" href="<?= e($b) ?>personal/vista.php?modo=<?= vista_simple() ? 'completa' : 'simple' ?>"><?= vista_simple() ? 'Ver todas las opciones' : 'Volver a la vista simple' ?></a>
     </div>
   </aside>
@@ -160,11 +162,11 @@ function pie_cliente()
       </div>
       <div class="tour-paso" data-paso="2" hidden>
         <h2>1. Pedí tu lugar</h2>
-        <p>Tocá <strong>«Pedir una reserva»</strong>. Si hay lugar, elegís el barco, escribís cuántos contenedores necesitás y enviás el pedido. Si no hay lugar, te lo decimos y no hace falta llenar nada.</p>
+        <p>Tocá <strong>“Pedir una reserva”</strong>. Si hay lugar, elegís el barco, escribís cuántos contenedores necesitás y enviás el pedido. Si no hay lugar, te lo decimos y no hace falta llenar nada.</p>
       </div>
       <div class="tour-paso" data-paso="3" hidden>
         <h2>2. Seguí tu carga</h2>
-        <p>En <strong>«Inicio»</strong> ves cada reserva y en qué paso está. Dentro de cada una, un cuadro de color te dice <strong>qué tenés que hacer ahora</strong>. Si no dice nada, no tenés que hacer nada.</p>
+        <p>En <strong>“Inicio”</strong> ves cada reserva y en qué paso está. Dentro de cada una, un cuadro de color te dice <strong>qué tenés que hacer ahora</strong>. Si no dice nada, no tenés que hacer nada.</p>
       </div>
       <div class="tour-paso" data-paso="4" hidden>
         <h2>3. Si tenés dudas</h2>

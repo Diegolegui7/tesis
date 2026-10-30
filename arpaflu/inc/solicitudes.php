@@ -5,7 +5,7 @@ require_once __DIR__ . '/db.php';
 require_once __DIR__ . '/util.php';
 require_once __DIR__ . '/avisos.php';
 
-// Embarques con espacio. Cada fila trae «libres» (cupo menos pedidos pendientes y aceptados) y «pedible» (abierto, antes del cut-off y con lugar).
+// Embarques con espacio. Cada fila trae “libres” (cupo menos pedidos pendientes y aceptados) y “pedible” (abierto, antes del cut-off y con lugar).
 function disponibilidades($solo_pedibles = false)
 {
     $filas = consulta(
@@ -93,7 +93,7 @@ function _aviso_a_solicitante($s, $op, $evento, $asunto, $cuerpo)
     ]);
 }
 
-// ARPAFLU acepta el pedido: crea la operación (estado «reserva solicitada») y avisa al cliente. Devuelve [ok, mensaje, operacion_id]
+// ARPAFLU acepta el pedido: crea la operación (estado “reserva solicitada”) y avisa al cliente. Devuelve [ok, mensaje, operacion_id]
 function aceptar_solicitud($emp, $id)
 {
     $pdo = db();

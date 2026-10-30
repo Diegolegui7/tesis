@@ -7,7 +7,7 @@ $u = requerir_empleado('registrar_cambios');
 if (es_post()) {
     csrf_verificar();
     $r = controlar_vencimientos();
-    flash('ok', 'Control de vencimientos ejecutado: ' . $r['recordatorios'] . ' recordatorio(s) de vencimiento, ' . $r['notado'] . ' recordatorio(s) de «Notado»'
+    flash('ok', 'Control de vencimientos ejecutado: ' . $r['recordatorios'] . ' recordatorio(s) de vencimiento, ' . $r['notado'] . ' recordatorio(s) de “Notado”'
         . ($r['fallidos'] ? ', ' . $r['fallidos'] . ' no enviado(s)' : '') . '.');
 }
 redirigir('panel.php');

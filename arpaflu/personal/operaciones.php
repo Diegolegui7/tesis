@@ -33,23 +33,23 @@ $clientes = consulta('SELECT id, empresa FROM clientes WHERE activo = 1 ORDER BY
 $navieras = consulta('SELECT id, nombre FROM navieras ORDER BY nombre');
 $semanas = consulta('SELECT DISTINCT semana FROM operaciones WHERE semana IS NOT NULL ORDER BY semana');
 
-cabecera_personal('Operaciones', 'operaciones');
+cabecera_personal('Reservas', 'operaciones');
 ?>
       <div class="encabezado-pagina">
         <div>
-          <h1>Operaciones</h1>
-          <p>Reservas marítimas de exportación, de la solicitud de espacio al zarpe.</p>
+          <h1>Reservas</h1>
+          <p>Todas las reservas, desde el pedido hasta que sale el barco. Tocá el número para ver el detalle.</p>
         </div>
         <div class="acciones">
           <?php if (puede('crear_operaciones')) { ?>
-          <a href="nueva-operacion.php" class="boton boton-primario">+ Nueva operación</a>
+          <a href="nueva-operacion.php" class="boton boton-primario">+ Nueva reserva</a>
           <?php } ?>
         </div>
       </div>
 
       <section class="tarjeta">
         <form class="filtros" action="operaciones.php" method="get">
-          <input type="search" class="filtro-ancho" name="q" value="<?= e($q) ?>" placeholder="Referencia, booking, buque, cliente…" aria-label="Buscar">
+          <input type="search" class="filtro-ancho" name="q" value="<?= e($q) ?>" placeholder="Número, booking, barco, cliente…" aria-label="Buscar">
           <select name="cliente" aria-label="Cliente">
             <option value="">Todos los clientes</option>
             <?php foreach ($clientes as $c) { ?><option value="<?= (int) $c['id'] ?>"<?= $cliente == $c['id'] ? ' selected' : '' ?>><?= e($c['empresa']) ?></option><?php } ?>
@@ -73,8 +73,8 @@ cabecera_personal('Operaciones', 'operaciones');
           <table id="tabla-operaciones">
             <thead>
               <tr>
-                <th>Referencia</th><th>Sem.</th><th>Cliente</th><th>Booking</th><th>Buque</th><th>Naviera</th>
-                <th>POL → POD</th><th>Contenedores</th><th>Cut-off doc.</th><th>Estado</th>
+                <th>Reserva</th><th>Cliente</th><th>Destino</th><th>Barco</th><th><?= termino_p('Booking') ?></th>
+                <th>Qué falta</th><th>Docs. hasta</th>
               </tr>
             </thead>
             <tbody>
@@ -83,18 +83,15 @@ cabecera_personal('Operaciones', 'operaciones');
                 $f = $activa && $o['cutoff_doc'] ? faltan($o['cutoff_doc']) : ['clase' => 'estado-neutro']; ?>
               <tr>
                 <td><a href="operacion.php?id=<?= (int) $o['id'] ?>" class="ref"><?= e($o['referencia']) ?></a></td>
-                <td><?= $o['semana'] ? 'S' . (int) $o['semana'] : '—' ?></td>
                 <td><?= e($o['empresa']) ?></td>
-                <td><?= $o['booking'] ? e($o['booking']) : '<span class="suave">Sin booking</span>' ?></td>
+                <td><?= e($o['pod']) ?><div class="chico suave"><?= (int) $o['cantidad'] ?> × <?= e($o['tipo_contenedor']) ?></div></td>
                 <td><?= $o['buque'] ? e($o['buque']) : '<span class="suave">A confirmar</span>' ?></td>
-                <td><?= e($o['naviera']) ?></td>
-                <td><?= e($o['pol']) ?> → <?= e($o['pod']) ?></td>
-                <td><?= (int) $o['cantidad'] ?> × <?= e($o['tipo_contenedor']) ?></td>
+                <td><?= $o['booking'] ? e($o['booking']) : '<span class="suave">Sin booking</span>' ?></td>
+                <td><?= e(que_falta($o)) ?></td>
                 <td class="num"><?= $o['cutoff_doc'] ? badge(f_corta($o['cutoff_doc']), $f['clase']) : '<span class="suave">—</span>' ?></td>
-                <td><?= badge_estado_op($o['estado']) ?></td>
               </tr>
             <?php } if (!$ops) { ?>
-              <tr><td colspan="10" class="suave">No hay operaciones que coincidan con la búsqueda.</td></tr>
+              <tr><td colspan="7" class="suave">No hay reservas que coincidan con la búsqueda.</td></tr>
             <?php } ?>
             </tbody>
           </table>

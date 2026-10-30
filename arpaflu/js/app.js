@@ -129,3 +129,23 @@ document.addEventListener('DOMContentLoaded', function () {
     if (!visto && document.getElementById('demo-panel') === null && /\/cliente\/reservas\.php/.test(location.pathname)) abrir();
   }
 });
+
+
+// Secciones plegables: un enlace “#id” (o un botón con la clase “abrir”) abre la sección y baja hasta ella
+(function () {
+  function abrir(id, desplazar) {
+    var el = id && document.getElementById(id);
+    if (!el || el.tagName !== 'DETAILS') { return false; }
+    el.open = true;
+    if (desplazar) { el.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
+    return true;
+  }
+  document.querySelectorAll('a.abrir').forEach(function (a) {
+    a.addEventListener('click', function (ev) {
+      var id = (a.getAttribute('href') || '').replace('#', '');
+      if (abrir(id, true)) { ev.preventDefault(); history.replaceState(null, '', '#' + id); }
+    });
+  });
+  window.addEventListener('hashchange', function () { abrir(location.hash.slice(1), true); });
+  abrir(location.hash.slice(1), true);
+})();

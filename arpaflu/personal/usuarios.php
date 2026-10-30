@@ -61,7 +61,7 @@ if (es_post()) {
         } else {
             $clave = clave_temporal();
             ejecutar('UPDATE usuarios SET clave_hash = ? WHERE id = ?', [password_hash($clave, PASSWORD_DEFAULT), $uid]);
-            flash('ok', 'Nueva clave de ' . $cta['correo'] . ': ' . $clave . ' (se muestra una sola vez; la persona puede cambiarla desde «Mi clave»).');
+            flash('ok', 'Nueva clave de ' . $cta['correo'] . ': ' . $clave . ' (se muestra una sola vez; la persona puede cambiarla desde “Mi clave”).');
         }
     } elseif ($accion === 'estado') {
         $uid = (int) (isset($_POST['id']) ? $_POST['id'] : 0);
@@ -119,7 +119,7 @@ cabecera_personal('Usuarios y permisos', 'usuarios');
 ?>
       <div class="encabezado-pagina">
         <div>
-          <h1>Usuarios y permisos</h1>
+          <h1>Personas y permisos</h1>
           <p>Cuentas del personal y de los clientes. Cada cliente solo ve sus propias operaciones.</p>
         </div>
         <div class="acciones">
@@ -263,10 +263,10 @@ cabecera_personal('Usuarios y permisos', 'usuarios');
               </tr>
             <?php } ?>
               <tr><td>Seleccionar alternativas</td><td>No</td><td>No</td><td>No</td><td>No</td><td>Si está habilitado</td></tr>
-              <tr><td>Confirmar «Notado»</td><td>No</td><td>No</td><td>No</td><td>No</td><td>Sí</td></tr>
+              <tr><td>Confirmar “Notado”</td><td>No</td><td>No</td><td>No</td><td>No</td><td>Sí</td></tr>
             </tbody>
           </table>
         </div>
-        <p class="ayuda" style="padding:0 18px 14px">Son los permisos que se cargan al crear una cuenta; se pueden ajustar por persona con «Permisos». Además, cada empleado solo puede modificar los clientes que tiene asignados (RF-02).</p>
+        <p class="ayuda" style="padding:0 18px 14px">Son los permisos que se cargan al crear una cuenta; se pueden ajustar por persona con “Permisos”. Además, cada empleado solo puede modificar los clientes que tiene asignados (RF-02).</p>
       </section>
 <?php pie_personal(); ?>

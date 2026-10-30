@@ -1,6 +1,6 @@
 <?php
 // SS5 · Comunicaciones y avisos
-// Cada aviso queda registrado (destinatario, resultado del envío y confirmación «Notado»).
+// Cada aviso queda registrado (destinatario, resultado del envío y confirmación “Notado”).
 require_once __DIR__ . '/db.php';
 require_once __DIR__ . '/util.php';
 
@@ -21,14 +21,17 @@ function enviar_correo($para, $asunto, $cuerpo)
     return [true, null];
 }
 
-// Cliente SMTP mínimo, pensado para un servidor de prueba como Mailpit (sin cifrado ni autenticación)
+// Cliente SMTP mínimo: sin cifrado (Mailpit), con STARTTLS (puerto 587) o SSL (puerto 465), con o sin usuario y clave (AUTH LOGIN)
 function enviar_smtp($para, $asunto, $cuerpo)
 {
-    $s = @fsockopen(SMTP_HOST, SMTP_PORT, $errno, $errstr, 5);
+    $ssl = SMTP_SEGURIDAD === 'ssl';
+    $verificar = !in_array(strtolower((string) SMTP_VERIFICAR_CERT), ['0', 'false', ''], true);
+    $opciones = ['ssl' => ['verify_peer' => $verificar, 'verify_peer_name' => $verificar, 'allow_self_signed' => !$verificar]];
+    $s = @stream_socket_client(($ssl ? 'ssl://' : 'tcp://') . SMTP_HOST . ':' . (int) SMTP_PORT, $errno, $errstr, 8, STREAM_CLIENT_CONNECT, stream_context_create($opciones));
     if (!$s) {
-        return [false, 'No se pudo conectar con el servidor de correo (' . $errstr . ')'];
+        return [false, 'No se pudo conectar con el servidor de correo (' . (trim($errstr) !== '' ? trim($errstr) : 'sin respuesta') . ')'];
     }
-    stream_set_timeout($s, 8);
+    stream_set_timeout($s, 10);
     $leer = function () use ($s) {
         $r = '';
         while (($l = fgets($s, 515)) !== false) {
@@ -44,16 +47,29 @@ function enviar_smtp($para, $asunto, $cuerpo)
         $r = $leer();
         return strpos($r, (string) $esperado) === 0 ? null : trim($r);
     };
+    $falla = function ($err) use ($s) {
+        fclose($s);
+        return [false, 'El servidor de correo respondió: ' . $err];
+    };
     $leer();
-    $pasos = [['EHLO arpaflu.local', 250], ['MAIL FROM:<' . MAIL_DE . '>', 250], ['RCPT TO:<' . $para . '>', 250], ['DATA', 354]];
-    foreach ($pasos as $p) {
-        $err = $cmd($p[0], $p[1]);
-        if ($err !== null) {
+    if (($err = $cmd('EHLO arpaflu', 250)) !== null) { return $falla($err); }
+    if (SMTP_SEGURIDAD === 'starttls') {
+        if (($err = $cmd('STARTTLS', 220)) !== null) { return $falla($err); }
+        if (!@stream_socket_enable_crypto($s, true, STREAM_CRYPTO_METHOD_TLS_CLIENT)) {
             fclose($s);
-            return [false, 'El servidor de correo respondió: ' . $err];
+            return [false, 'No se pudo establecer la conexión cifrada con el servidor de correo'];
         }
+        if (($err = $cmd('EHLO arpaflu', 250)) !== null) { return $falla($err); }
     }
-    $msg = 'From: ARPAFLU <' . MAIL_DE . ">\r\nTo: <" . $para . ">\r\nSubject: =?UTF-8?B?" . base64_encode($asunto) . "?=\r\n"
+    if (SMTP_USUARIO !== '') {
+        if (($err = $cmd('AUTH LOGIN', 334)) !== null) { return $falla($err); }
+        if (($err = $cmd(base64_encode(SMTP_USUARIO), 334)) !== null) { return $falla($err); }
+        if (($err = $cmd(base64_encode(SMTP_CLAVE), 235)) !== null) { return $falla('usuario o contraseña rechazados (' . $err . ')'); }
+    }
+    foreach ([['MAIL FROM:<' . MAIL_DE . '>', 250], ['RCPT TO:<' . $para . '>', 250], ['DATA', 354]] as $p) {
+        if (($err = $cmd($p[0], $p[1])) !== null) { return $falla($err); }
+    }
+    $msg = 'From: ARPAFLU <' . MAIL_DE . ">\r\nTo: <" . $para . ">\r\nSubject: =?UTF-8?B?" . base64_encode($asunto) . "?=\r\nDate: " . date('r') . "\r\n"
         . "MIME-Version: 1.0\r\nContent-Type: text/plain; charset=UTF-8\r\nContent-Transfer-Encoding: base64\r\n\r\n"
         . chunk_split(base64_encode($cuerpo)) . "\r\n.";
     $err = $cmd($msg, 250);
@@ -90,7 +106,7 @@ function destinatarios_operacion($operacion_id)
     );
 }
 
-// Aviso interno al empleado responsable de la operación (no pide «Notado»)
+// Aviso interno al empleado responsable de la operación (no pide “Notado”)
 function aviso_interno($op, $evento, $tipo, $asunto, $cuerpo, $cambio_id = null)
 {
     if (empty($op['responsable_id'])) {
@@ -107,7 +123,7 @@ function aviso_interno($op, $evento, $tipo, $asunto, $cuerpo, $cambio_id = null)
     ]);
 }
 
-// Avisa a los participantes indicados (ids de la tabla participantes). Contactos y despachantes deben confirmar «Notado».
+// Avisa a los participantes indicados (ids de la tabla participantes). Contactos y despachantes deben confirmar “Notado”.
 function avisar_participantes($op, $ids, $evento, $tipo, $asunto, $cuerpo, $cambio_id = null, $pide_notado = true)
 {
     $enviados = 0;
@@ -148,7 +164,7 @@ function reenviar_aviso($id)
     return $r;
 }
 
-// Registra la confirmación «Notado» (RF-17). Acredita la intervención del usuario, no la entrega del correo.
+// Registra la confirmación “Notado” (RF-17). Acredita la intervención del usuario, no la entrega del correo.
 function confirmar_notado($comunicacion_id, $usuario_id)
 {
     return ejecutar(
@@ -186,7 +202,7 @@ function badge_avisos_cambio($cambio_id)
     return badge($r['requeridos'] > 0 ? 'Todos notados' : 'Enviado', 'estado-ok');
 }
 
-// Cantidad de avisos que requieren atención (no enviados sin reenvío exitoso + «Notado» vencidos)
+// Cantidad de avisos que requieren atención (no enviados sin reenvío exitoso + “Notado” vencidos)
 function contar_avisos_pendientes()
 {
     $f = (int) valor(

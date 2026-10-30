@@ -97,7 +97,7 @@ if (es_post()) {
             $tab = 'comunicaciones';
             if ($necesita('registrar_cambios')) {
                 $ok = confirmar_notado(isset($_POST['comunicacion_id']) ? $_POST['comunicacion_id'] : 0, $u['id']);
-                $resultado = [(bool) $ok, $ok ? 'Se registró el «Notado» (confirmado por ' . $u['nombre'] . ').' : 'Ese aviso ya estaba confirmado.'];
+                $resultado = [(bool) $ok, $ok ? 'Se registró el “Notado” (confirmado por ' . $u['nombre'] . ').' : 'Ese aviso ya estaba confirmado.'];
             }
             break;
         default:
@@ -137,28 +137,40 @@ $fecha_card = function ($etiqueta, $dt, $conHora = true, $cumplida = false) use 
     return '<div class="fecha ' . $clase . '"><span class="etiqueta">' . e($etiqueta) . '</span><strong>' . e($conHora ? f_hora($dt) : f_fecha($dt)) . '</strong>' . $sub . '</div>';
 };
 
+$etiquetas_cambio = ['Buque' => 'El barco (cambió de barco)', 'ETD' => 'La fecha de salida (ETD)', 'ETA' => 'La fecha de llegada (ETA)', 'Cut-off documental' => 'El límite para los documentos', 'Cut-off físico' => 'El límite para llevar la carga', 'Fecha límite de VGM' => 'El límite para el peso (VGM)', 'Terminal' => 'La terminal', 'Roleo (buque y fechas)' => 'El barco se corre (roleo): nuevo barco y fechas', 'Novedad posterior al zarpe' => 'Una novedad después de la salida', 'Otro' => 'Otra cosa'];
 $orden_label = ['solicitado' => 'estado-alerta', 'recibido' => 'estado-ok', 'revisado' => 'estado-info', 'presentado' => 'estado-ok'];
 
-$sig_titulo = !$op['booking'] ? 'confirmar el booking' : (!$op['orden_retiro'] ? 'registrar la orden de retiro' : 'registrar el zarpe');
+// “Qué sigue” y línea de pasos, en palabras comunes
+$cancelada = $op['estado'] === 'cancelada';
+$zarpada = $op['estado'] === 'zarpado';
+$paso = $cancelada ? 'cancelada' : (!$op['booking'] ? 'booking' : (!$op['orden_retiro'] ? 'orden' : ($zarpada ? 'fin' : 'zarpe')));
+$sigue = [
+    'booking' => ['Cargar el número de booking', 'La naviera confirma el lugar en el barco con un número: el booking. Cuando lo tengas, anotalo. Se le avisa al cliente.'],
+    'orden' => ['Registrar la orden de retiro', 'La naviera manda una orden para retirar el contenedor vacío. Anotala cuando llegue.'],
+    'zarpe' => ['Avisar cuando el barco salga', 'Cuando la naviera confirme que el barco zarpó, tocá el botón. Se le avisa al cliente y la reserva pasa a “Zarpada”.'],
+    'fin' => ['No hay nada para hacer por ahora', 'El barco ya salió. Si llega una novedad, por ejemplo que llegó o que se demora, anotala.'],
+    'cancelada' => ['Esta reserva se canceló', 'No se puede cambiar nada. Queda guardada para consultarla.'],
+][$paso];
+$puede_gestionar = $actuar && puede('crear_operaciones');
+$solicitud_origen = valor('SELECT id FROM solicitudes WHERE operacion_id = ? LIMIT 1', [$id]);
+$pasos_reserva = [
+    [$solicitud_origen ? 'Pedido aceptado' : 'Reserva creada', f_corta($op['creado']), 'ok'],
+    ['Lugar confirmado por la naviera', $op['booking'] ? 'Booking ' . $op['booking'] . ($op['booking_confirmado_en'] ? ' · ' . f_corta($op['booking_confirmado_en']) : '') : 'Falta el número de booking', $op['booking'] ? 'ok' : ($cancelada ? '' : 'ahora')],
+    ['Orden de retiro', $op['orden_retiro'] ? 'N.º ' . $op['orden_retiro'] . ' · ' . f_corta($op['orden_retiro_fecha']) : 'Se anota cuando llega de la naviera', $op['orden_retiro'] ? 'ok' : ($op['booking'] && !$cancelada ? 'ahora' : '')],
+    ['Documentos del cliente', ($op['cutoff_doc'] ? 'Hasta el ' . f_hora($op['cutoff_doc']) . ' · ' : '') . count($documentos) . ' cargado' . (count($documentos) == 1 ? '' : 's'), $zarpada ? 'ok' : ($op['orden_retiro'] && !$cancelada ? 'ahora' : '')],
+    ['El barco salió', $zarpada ? f_hora($op['zarpe_confirmado']) : 'Se anota cuando la naviera lo confirma', $zarpada ? 'ok' : ''],
+];
 
 cabecera_personal($op['referencia'], 'operaciones');
 ?>
       <div class="encabezado-pagina">
         <div>
-          <div class="migas"><a href="operaciones.php">Operaciones</a> / <?= e($op['referencia']) ?></div>
-          <h1><?= e($op['referencia']) ?> · <?= e($op['empresa']) ?> <span style="vertical-align:middle"><?= badge_estado_op($op['estado']) ?></span></h1>
+          <div class="migas"><a href="operaciones.php">Reservas</a> / <?= e($op['referencia']) ?></div>
+          <h1><?= e($op['empresa']) ?> a <?= e($op['pod']) ?> <span style="vertical-align:middle"><?= badge_estado_op($op['estado']) ?></span></h1>
           <p>
-            <?= $op['booking'] ? 'Booking ' . e($op['booking']) : 'Sin booking todavía' ?> ·
-            <?= $op['buque'] ? e($op['buque']) : 'Buque a confirmar' ?> ·
-            <?= e($op['pol']) ?> → <?= e($op['pod']) ?> · Responsable: <?= e($op['responsable']) ?>
+            <?= e($op['referencia']) ?> · <?= (int) $op['cantidad'] ?> × <?= e($op['tipo_contenedor']) ?> ·
+            <?= $op['buque'] ? e($op['buque']) : 'Barco a confirmar' ?> · Responsable: <?= e($op['responsable']) ?>
           </p>
-        </div>
-        <div class="acciones">
-          <?php if ($abierta && $actuar) { ?>
-            <?php if (puede('registrar_cambios')) { ?><a href="#cambios" class="boton boton-primario" data-ir="cambios">Registrar cambio</a><?php } ?>
-            <?php if (puede('cargar_documentos')) { ?><a href="#documentos" class="boton boton-secundario" data-ir="documentos">Cargar documento</a><?php } ?>
-            <?php if (puede('crear_operaciones')) { ?><button type="button" class="boton boton-peligro" data-alternar="form-cancelar">Cancelar reserva</button><?php } ?>
-          <?php } ?>
         </div>
       </div>
 
@@ -206,8 +218,8 @@ cabecera_personal($op['referencia'], 'operaciones');
       <?php foreach ($vencidos as $vc) { ?>
       <div class="aviso aviso-alerta">
         <div>
-          <strong>Falta un «Notado».</strong>
-          <p><?= e($vc['destinatario_nombre']) ?> no confirmó «<?= e($vc['evento']) ?>» del <?= e(f_hora($vc['creado'])) ?>. Plazo vencido el <?= e(f_hora($vc['plazo_notado'])) ?>.</p>
+          <strong>Falta un “Notado”.</strong>
+          <p><?= e($vc['destinatario_nombre']) ?> no confirmó “<?= e($vc['evento']) ?>” del <?= e(f_hora($vc['creado'])) ?>. Plazo vencido el <?= e(f_hora($vc['plazo_notado'])) ?>.</p>
         </div>
         <?php if ($actuar && puede('registrar_cambios')) { ?>
         <form class="acciones" action="operacion.php?id=<?= $id ?>" method="post">
@@ -218,71 +230,96 @@ cabecera_personal($op['referencia'], 'operaciones');
       </div>
       <?php } ?>
 
-      <?php if ($op['estado'] !== 'cancelada') { ?>
-      <section class="tarjeta" style="margin-bottom:18px"><div class="tarjeta-cuerpo"><?= barra_progreso($op['estado']) ?></div></section>
+      <?php if ($zarpada) { ?>
+      <div class="aviso aviso-ok"><div>
+        <strong>Esta reserva ya viajó el <?= e(f_fecha($op['zarpe_confirmado'])) ?>.</strong>
+        <p>Ya no se puede cambiar el barco ni las fechas. Todavía se pueden anotar novedades (que llegó, que se demora) y cargar documentos que falten.</p>
+      </div></div>
       <?php } ?>
 
-      <?php if ($abierta && $actuar && puede('crear_operaciones')) { ?>
-      <div class="tarjeta">
-        <div class="tarjeta-cabecera"><h2>Siguiente paso: <?= e($sig_titulo) ?></h2></div>
-        <div class="tarjeta-cuerpo formulario">
-          <?php if (!$op['booking']) { ?>
-            <form action="operacion.php?id=<?= $id ?>" method="post">
+      <div class="tarjeta que-sigue">
+        <div class="tarjeta-cuerpo">
+          <p class="etiqueta-sigue">Qué sigue</p>
+          <h2 class="titulo-sigue"><?= e($sigue[0]) ?></h2>
+          <p class="suave" style="margin:4px 0 0"><?= e($sigue[1]) ?></p>
+          <?php if ($puede_gestionar && $paso === 'booking') { ?>
+            <form action="operacion.php?id=<?= $id ?>" method="post" class="formulario" style="margin-top:12px">
               <?= csrf_campo() ?><input type="hidden" name="accion" value="booking">
-              <p><strong>La naviera confirmó el espacio.</strong> Cargá el booking (se avisa al cliente).</p>
               <div class="campos">
-                <div class="campo"><label for="bk-num">N.º de booking</label><input type="text" id="bk-num" name="booking" maxlength="40" required></div>
-                <div class="campo"><label for="bk-buque">Buque y viaje (si cambió)</label><input type="text" id="bk-buque" name="buque" maxlength="120" value="<?= e($op['buque']) ?>"></div>
+                <div class="campo"><label for="bk-num">Número de booking</label><input type="text" id="bk-num" name="booking" maxlength="40" required placeholder="Por ejemplo: 254AR0099001"></div>
+                <div class="campo"><label for="bk-buque">Barco y viaje (solo si cambió)</label><input type="text" id="bk-buque" name="buque" maxlength="120" value="<?= e($op['buque']) ?>"></div>
               </div>
-              <div class="pie-formulario"><button type="submit" class="boton boton-primario">Confirmar booking</button></div>
+              <div class="pie-formulario"><button type="submit" class="boton boton-primario boton-grande">Guardar el booking</button></div>
             </form>
-          <?php } elseif (!$op['orden_retiro']) { ?>
-            <form action="operacion.php?id=<?= $id ?>" method="post">
+          <?php } elseif ($puede_gestionar && $paso === 'orden') { ?>
+            <form action="operacion.php?id=<?= $id ?>" method="post" class="formulario" style="margin-top:12px">
               <?= csrf_campo() ?><input type="hidden" name="accion" value="orden">
-              <p><strong>Orden de retiro de contenedores vacíos.</strong> Registrala cuando llegue de la naviera.</p>
               <div class="campos">
-                <div class="campo"><label for="or-num">N.º de orden</label><input type="text" id="or-num" name="orden_retiro" maxlength="40" required></div>
-                <div class="campo"><label for="or-fecha">Recibida el</label><input type="text" id="or-fecha" name="fecha" placeholder="<?= date('d/m/Y') ?>"></div>
+                <div class="campo"><label for="or-num">Número de la orden</label><input type="text" id="or-num" name="orden_retiro" maxlength="40" required placeholder="Por ejemplo: OR-5521"></div>
+                <div class="campo"><label for="or-fecha">Fecha en que llegó</label><input type="text" id="or-fecha" name="fecha" placeholder="<?= date('d/m/Y') ?>"></div>
               </div>
-              <div class="pie-formulario"><button type="submit" class="boton boton-primario">Registrar orden de retiro</button></div>
+              <div class="pie-formulario"><button type="submit" class="boton boton-primario boton-grande">Guardar la orden de retiro</button></div>
             </form>
-          <?php } else { ?>
-            <form action="operacion.php?id=<?= $id ?>" method="post" onsubmit="return confirm('¿Confirmar el zarpe? Se avisa al cliente y la operación pasa a Zarpado.');">
+          <?php } elseif ($puede_gestionar && $paso === 'zarpe') { ?>
+            <form action="operacion.php?id=<?= $id ?>" method="post" class="formulario" style="margin-top:12px" onsubmit="return confirm('¿El barco ya salió? Se le avisa al cliente y la reserva pasa a “Zarpada”.');">
               <?= csrf_campo() ?><input type="hidden" name="accion" value="zarpe">
-              <p>Cuando el buque zarpe, registralo acá. El arribo y la liberación se registran después, como «Novedad posterior al zarpe», con información verificada; el sistema no cierra la operación por la ETA.</p>
-              <div class="pie-formulario"><button type="submit" class="boton boton-primario">Registrar zarpe</button></div>
+              <div class="pie-formulario" style="justify-content:flex-start"><button type="submit" class="boton boton-primario boton-grande">El barco ya salió</button></div>
             </form>
+          <?php } elseif ($paso === 'fin' && $actuar && puede('registrar_cambios')) { ?>
+            <p style="margin:12px 0 0"><a href="#cambios" class="boton boton-primario boton-grande abrir">Anotar una novedad</a></p>
+          <?php } elseif ($paso !== 'fin' && $paso !== 'cancelada') { ?>
+            <p class="chico suave" style="margin:12px 0 0">Esto lo hace <?= $op['responsable'] ? e($op['responsable']) . ', responsable de esta reserva' : 'el responsable de la reserva' ?>.</p>
           <?php } ?>
+        </div>
+      </div>
+
+      <div class="tarjeta">
+        <div class="tarjeta-cuerpo">
+          <p class="etiqueta-sigue" style="color:var(--texto-suave)">Cómo va la reserva</p>
+          <ol class="pasos-reserva">
+            <?php foreach ($pasos_reserva as $i => $pr) { ?>
+            <li class="<?= e($pr[2]) ?>">
+              <span class="punto"><?= $pr[2] === 'ok' ? '✓' : $i + 1 ?></span>
+              <span><strong><?= e($pr[0]) ?></strong><span class="chico suave" style="display:block"><?= e($pr[1]) ?></span></span>
+            </li>
+            <?php } ?>
+          </ol>
+        </div>
+      </div>
+
+      <?php $otras_cambio = $actuar && puede('registrar_cambios') && ($abierta || $zarpada); $otras_doc = $actuar && puede('cargar_documentos') && ($abierta || $zarpada); $otras_cancelar = $abierta && $puede_gestionar; ?>
+      <?php if ($otras_cambio || $otras_doc || $otras_cancelar) { ?>
+      <div class="tarjeta">
+        <div class="tarjeta-cuerpo">
+          <p class="etiqueta-sigue" style="color:var(--texto-suave)">Otras cosas que se pueden hacer</p>
+          <div class="acciones" style="justify-content:flex-start">
+            <?php if ($otras_cambio) { ?><a href="#cambios" class="boton boton-secundario abrir"><?= $zarpada ? 'Anotar una novedad' : 'Avisar un cambio de barco, fecha o plazo' ?></a><?php } ?>
+            <?php if ($otras_doc) { ?><a href="#documentos" class="boton boton-secundario abrir">Subir un documento</a><?php } ?>
+            <?php if ($otras_cancelar) { ?><button type="button" class="boton boton-peligro" data-alternar="form-cancelar">Cancelar la reserva</button><?php } ?>
+          </div>
         </div>
       </div>
       <?php } ?>
 
-      <nav class="pestanas" role="tablist">
-        <button class="pestana activa" data-pestana="datos" role="tab" aria-selected="true">Datos</button>
-        <button class="pestana" data-pestana="contenedores" role="tab" aria-selected="false">Contenedores <span class="contador"><?= count($contenedores) ?></span></button>
-        <button class="pestana" data-pestana="documentos" role="tab" aria-selected="false">Documentos <span class="contador"><?= count($documentos) ?></span></button>
-        <button class="pestana" data-pestana="cambios" role="tab" aria-selected="false">Cambios <span class="contador"><?= count($historial) ?></span></button>
-        <button class="pestana" data-pestana="comunicaciones" role="tab" aria-selected="false">Comunicaciones <span class="contador"><?= count($comunicaciones) ?></span></button>
-      </nav>
-
+      <p class="suave" style="margin:20px 0 8px;font-weight:600">Más detalles</p>
       <!-- ===== Datos ===== -->
-      <section id="datos" class="panel-pestana" role="tabpanel">
+      <details id="fechas" class="acordeon"><summary><span class="ac-t">Fechas y plazos</span><span class="ac-h">cuándo hay que entregar cada cosa</span></summary><div class="acordeon-cuerpo">
         <div class="tarjeta">
-          <div class="tarjeta-cabecera"><h2>Fechas y cut-offs</h2></div>
           <div class="tarjeta-cuerpo">
             <div class="fechas">
               <?= $fecha_card('Booking confirmado', $op['booking_confirmado_en'], false, true) ?>
-              <?= $fecha_card('Cut-off documental', $op['cutoff_doc']) ?>
-              <?= $fecha_card('Cut-off físico', $op['cutoff_fisico']) ?>
-              <?= $fecha_card('Fecha límite de VGM', $op['vgm_limite']) ?>
-              <?= $fecha_card('ETD (zarpe estimado)', $op['etd'], false) ?>
-              <?= $fecha_card('ETA ' . $op['pod'], $op['eta'], false) ?>
+              <?= $fecha_card('Límite para los documentos', $op['cutoff_doc']) ?>
+              <?= $fecha_card('Límite para llevar la carga', $op['cutoff_fisico']) ?>
+              <?= $fecha_card('Límite para el peso (VGM)', $op['vgm_limite']) ?>
+              <?= $fecha_card('Salida estimada (ETD)', $op['etd'], false) ?>
+              <?= $fecha_card('Llegada estimada a ' . $op['pod'] . ' (ETA)', $op['eta'], false) ?>
               <?= $fecha_card('Zarpe confirmado', $op['zarpe_confirmado'], true, true) ?>
             </div>
           </div>
         </div>
+      </div></details>
 
-
+      <details id="datos" class="acordeon"><summary><span class="ac-t">Datos de la reserva y a quién se avisa</span><span class="ac-h">barco, puertos, contenedores y contactos</span></summary><div class="acordeon-cuerpo">
         <div class="grilla grilla-2-1">
           <div class="tarjeta">
             <div class="tarjeta-cabecera"><h2>Datos de la reserva</h2></div>
@@ -291,15 +328,15 @@ cabecera_personal($op['referencia'], 'operaciones');
                 <div><dt>Referencia cliente</dt><dd><?= e($op['referencia_cliente'] ?: '—') ?></dd></div>
                 <div><dt>Semana</dt><dd><?= $op['semana'] ? (int) $op['semana'] : '—' ?></dd></div>
                 <div><dt>Naviera</dt><dd><?= e($op['naviera'] ?: '—') ?></dd></div>
-                <div><dt>Buque</dt><dd><?= e($op['buque'] ?: 'A confirmar') ?></dd></div>
-                <div><dt>Bandera</dt><dd><?= e($op['bandera'] ?: '—') ?></dd></div>
-                <div><dt>Booking</dt><dd><?= e($op['booking'] ?: '—') ?></dd></div>
-                <div><dt>Terminal</dt><dd><?= e($op['terminal'] ?: 'A confirmar') ?></dd></div>
-                <div><dt>POL</dt><dd><?= e($op['pol']) ?></dd></div>
-                <div><dt>POD</dt><dd><?= e($op['pod']) ?></dd></div>
-                <div><dt>Vía</dt><dd><?= $op['via'] === 'directa' ? 'Directa' : 'Con transbordo' ?></dd></div>
+                <div><dt>Barco</dt><dd><?= e($op['buque'] ?: 'A confirmar') ?></dd></div>
+                <div><dt>Bandera del barco</dt><dd><?= e($op['bandera'] ?: '—') ?></dd></div>
+                <div><dt><?= termino_p('Booking') ?></dt><dd><?= e($op['booking'] ?: '—') ?></dd></div>
+                <div><dt><?= termino_p('Terminal') ?></dt><dd><?= e($op['terminal'] ?: 'A confirmar') ?></dd></div>
+                <div><dt><?= termino_p('POL', 'Puerto de carga') ?></dt><dd><?= e($op['pol']) ?></dd></div>
+                <div><dt><?= termino_p('POD', 'Puerto de destino') ?></dt><dd><?= e($op['pod']) ?></dd></div>
+                <div><dt>Ruta</dt><dd><?= $op['via'] === 'directa' ? 'Directa' : 'Con transbordo' ?></dd></div>
                 <div><dt>Contenedores</dt><dd><?= (int) $op['cantidad'] ?> × <?= e($op['tipo_contenedor']) ?></dd></div>
-                <div><dt>Días libres en destino</dt><dd><?= $op['dias_libres'] !== null ? (int) $op['dias_libres'] : '—' ?></dd></div>
+                <div><dt><?= termino_p('Días libres') ?> en destino</dt><dd><?= $op['dias_libres'] !== null ? (int) $op['dias_libres'] : '—' ?></dd></div>
                 <div><dt>Orden de retiro</dt><dd><?= $op['orden_retiro'] ? e($op['orden_retiro']) . ' · ' . e(f_corta($op['orden_retiro_fecha'])) : '—' ?></dd></div>
                 <div><dt>Cotización aceptada</dt><dd><?= $op['cot_codigo'] ? '<a href="cotizaciones.php">' . e($op['cot_codigo'] . ' v' . $op['cot_version']) . '</a>' : '—' ?></dd></div>
                 <?php if ($op['cot_flete'] !== null) { ?><div><dt>Flete ofrecido</dt><dd><?= e(dinero($op['cot_flete'])) ?> / cont.</dd></div><?php } ?>
@@ -324,10 +361,9 @@ cabecera_personal($op['referencia'], 'operaciones');
             </ul>
           </div>
         </div>
-      </section>
+      </div></details>
 
-      <!-- ===== Contenedores ===== -->
-      <section id="contenedores" class="panel-pestana" role="tabpanel" hidden>
+      <details id="contenedores" class="acordeon"><summary><span class="ac-t">Contenedores <span class="contador"><?= count($contenedores) ?></span></span><span class="ac-h">los que ya se cargaron</span></summary><div class="acordeon-cuerpo">
         <div class="tarjeta">
           <div class="tarjeta-cabecera">
             <h2>Contenedores y orden de retiro</h2>
@@ -335,7 +371,7 @@ cabecera_personal($op['referencia'], 'operaciones');
           </div>
           <div class="tabla-contenedor">
             <table>
-              <thead><tr><th>N.º de contenedor</th><th>Tipo</th><th>Retiro de vacío</th><th>Peso bruto (kg)</th><th>VGM</th><th>Precinto</th><th></th></tr></thead>
+              <thead><tr><th>N.º de contenedor</th><th>Tipo</th><th>Retiro de vacío</th><th>Peso bruto (kg)</th><th><?= termino_p('VGM') ?></th><th>Precinto</th><th></th></tr></thead>
               <tbody>
               <?php foreach ($contenedores as $c) {
                   $cl = ['pendiente' => 'estado-alerta', 'declarado' => 'estado-ok', 'transmitido' => 'estado-ok'][$c['vgm']]; ?>
@@ -386,14 +422,14 @@ cabecera_personal($op['referencia'], 'operaciones');
           </div>
         </form>
         <?php } ?>
-      </section>
+      </div></details>
 
       <!-- ===== Documentos ===== -->
-      <section id="documentos" class="panel-pestana" role="tabpanel" hidden>
+      <details id="documentos" class="acordeon"><summary><span class="ac-t">Documentos <span class="contador"><?= count($documentos) ?></span></span><span class="ac-h">lo que se cargó y lo que mandó el cliente</span></summary><div class="acordeon-cuerpo">
         <?php if (($abierta || $op['estado'] === 'zarpado') && $actuar && puede('cargar_documentos')) { ?>
         <form class="tarjeta" action="operacion.php?id=<?= $id ?>" method="post" enctype="multipart/form-data">
           <?= csrf_campo() ?><input type="hidden" name="accion" value="documento">
-          <div class="tarjeta-cabecera"><h2>Cargar documento</h2></div>
+          <div class="tarjeta-cabecera"><h2>Subir un documento</h2></div>
           <div class="tarjeta-cuerpo formulario">
             <div class="campos">
               <div class="campo">
@@ -424,7 +460,7 @@ cabecera_personal($op['referencia'], 'operaciones');
                 <label class="casilla"><input type="checkbox" name="visible_cliente" value="1" checked> Visible para el cliente en su portal</label>
               </div>
             </div>
-            <p class="ayuda">Si ya existe un documento del mismo tipo, se guarda como una versión nueva y se conserva la anterior. Un documento «solicitado» puede cargarse sin archivo.</p>
+            <p class="ayuda">Si ya existe un documento del mismo tipo, se guarda como una versión nueva y se conserva la anterior. Un documento “solicitado” puede cargarse sin archivo.</p>
             <div class="pie-formulario"><button type="submit" class="boton boton-primario">Guardar documento</button></div>
           </div>
         </form>
@@ -453,54 +489,55 @@ cabecera_personal($op['referencia'], 'operaciones');
             </table>
           </div>
         </div>
-      </section>
+      </div></details>
 
       <!-- ===== Cambios ===== -->
-      <section id="cambios" class="panel-pestana" role="tabpanel" hidden>
+      <details id="cambios" class="acordeon"><summary><span class="ac-t">Qué cambió <span class="contador"><?= count($historial) ?></span></span><span class="ac-h">historial de cambios y novedades</span></summary><div class="acordeon-cuerpo">
         <?php if (($abierta || $op['estado'] === 'zarpado') && $actuar && puede('registrar_cambios')) { ?>
         <form class="tarjeta" action="operacion.php?id=<?= $id ?>" method="post">
           <?= csrf_campo() ?><input type="hidden" name="accion" value="cambio">
-          <div class="tarjeta-cabecera"><h2>Registrar cambio</h2></div>
+          <div class="tarjeta-cabecera"><h2>Avisar un cambio</h2></div>
           <div class="tarjeta-cuerpo formulario">
+            <p class="ayuda" style="margin:0 0 10px">Usalo cuando la naviera cambia el barco, una fecha o un plazo, o cuando hay una novedad. Se guarda en el historial y se avisa a quienes elijas.</p>
             <div class="campos">
               <div class="campo">
-                <label for="cambio-dato">Dato que cambia</label>
+                <label for="cambio-dato">Qué cambió</label>
                 <select id="cambio-dato" name="dato">
-                  <?php foreach (array_keys(datos_cambiables()) as $d) { if ($op['estado'] === 'zarpado' && !in_array($d, ['ETA', 'Novedad posterior al zarpe'], true)) { continue; } ?><option><?= e($d) ?></option><?php } ?>
+                  <?php foreach (array_keys(datos_cambiables()) as $d) { if ($op['estado'] === 'zarpado' && !in_array($d, ['ETA', 'Novedad posterior al zarpe'], true)) { continue; } ?><option value="<?= e($d) ?>"><?= e(isset($etiquetas_cambio[$d]) ? $etiquetas_cambio[$d] : $d) ?></option><?php } ?>
                 </select>
               </div>
               <div class="campo">
-                <label for="cambio-actual">Valor actual</label>
+                <label for="cambio-actual">Cómo estaba</label>
                 <input type="text" id="cambio-actual" value="" disabled>
               </div>
               <div class="campo">
-                <label for="cambio-nuevo">Valor nuevo</label>
+                <label for="cambio-nuevo">Cómo queda</label>
                 <input type="text" id="cambio-nuevo" name="valor_nuevo" maxlength="200" placeholder="">
                 <span class="ayuda" id="cambio-ayuda"></span>
               </div>
               <div class="campo">
-                <label for="cambio-origen">Comunicación que lo originó</label>
+                <label for="cambio-origen">De dónde viene la novedad</label>
                 <select id="cambio-origen" name="origen">
                   <option>Correo de la naviera</option><option>Portal de la naviera</option><option>Pedido del cliente</option><option>Terminal</option>
                 </select>
               </div>
               <div class="campo" id="roleo-etd" hidden>
-                <label for="cambio-etd">Nuevo ETD (solo roleo, opcional)</label>
+                <label for="cambio-etd">Nueva fecha de salida (solo si el barco se corre; opcional)</label>
                 <input type="text" id="cambio-etd" name="etd_nuevo" placeholder="dd/mm/aaaa">
               </div>
               <div class="campo" id="roleo-cut" hidden>
-                <label for="cambio-cut">Nuevo cut-off documental (solo roleo, opcional)</label>
+                <label for="cambio-cut">Nuevo límite para los documentos (solo si el barco se corre; opcional)</label>
                 <input type="text" id="cambio-cut" name="cutoff_nuevo" placeholder="dd/mm/aaaa hh:mm">
               </div>
               <div class="campo campo-ancho">
-                <label for="cambio-detalle">Detalle</label>
+                <label for="cambio-detalle">Detalle (opcional)</label>
                 <textarea id="cambio-detalle" name="detalle"></textarea>
               </div>
               <div class="campo campo-ancho">
                 <span class="etiqueta">Avisar a</span>
                 <?php foreach ($participantes_cliente as $p) { ?>
                   <label class="casilla"><input type="checkbox" name="avisar[]" value="<?= (int) $p['id'] ?>"<?= in_array($p['id'], $dest_ids) ? ' checked' : '' ?>>
-                    <?= e($p['nombre']) ?> (<?= $p['rol'] === 'despachante' ? 'despachante' : e($op['empresa']) ?>)<?= $p['rol'] !== 'otro' ? ' · pide «Notado»' : '' ?></label>
+                    <?= e($p['nombre']) ?> (<?= $p['rol'] === 'despachante' ? 'despachante' : e($op['empresa']) ?>)<?= $p['rol'] !== 'otro' ? ' · pide “Notado”' : '' ?></label>
                 <?php } ?>
                 <label class="casilla"><input type="checkbox" name="avisar[]" value="responsable" checked> <?= e($op['responsable']) ?> (responsable)</label>
               </div>
@@ -522,7 +559,7 @@ cabecera_personal($op['referencia'], 'operaciones');
                 <div class="cambio-valor"><span class="valor-anterior"><?= e($h['valor_anterior'] ?: '—') ?></span> → <span class="valor-nuevo"><?= e($h['valor_nuevo']) ?></span></div>
                 <?php if ($h['detalle']) { ?><div class="chico"><?= e($h['detalle']) ?></div><?php } ?>
                 <?php if ($r['total']) { ?>
-                  <div class="chico suave">Avisado a <?= $r['total'] ?> destinatario<?= $r['total'] == 1 ? '' : 's' ?><?= $r['requeridos'] ? ' · «Notado»: ' . $r['notados'] . ' de ' . $r['requeridos'] . ' confirmados' : '' ?><?= $r['fallidos'] ? ' · ' . $r['fallidos'] . ' no enviado' : '' ?></div>
+                  <div class="chico suave">Avisado a <?= $r['total'] ?> destinatario<?= $r['total'] == 1 ? '' : 's' ?><?= $r['requeridos'] ? ' · “Notado”: ' . $r['notados'] . ' de ' . $r['requeridos'] . ' confirmados' : '' ?><?= $r['fallidos'] ? ' · ' . $r['fallidos'] . ' no enviado' : '' ?></div>
                 <?php } ?>
               </li>
               <?php } if (!$historial) { ?>
@@ -534,15 +571,15 @@ cabecera_personal($op['referencia'], 'operaciones');
         <?php } else { ?>
         <div class="tarjeta"><div class="tarjeta-cuerpo"><p class="suave">Tu cuenta no tiene permiso para ver el historial completo de cambios.</p></div></div>
         <?php } ?>
-      </section>
+      </div></details>
 
       <!-- ===== Comunicaciones ===== -->
-      <section id="comunicaciones" class="panel-pestana" role="tabpanel" hidden>
+      <details id="comunicaciones" class="acordeon"><summary><span class="ac-t">Avisos enviados <span class="contador"><?= count($comunicaciones) ?></span></span><span class="ac-h">qué se le avisó a cada persona</span></summary><div class="acordeon-cuerpo">
         <div class="tarjeta">
           <div class="tarjeta-cabecera"><h2>Avisos enviados</h2></div>
           <div class="tabla-contenedor">
             <table>
-              <thead><tr><th>Fecha</th><th>Evento</th><th>Destinatario</th><th>Envío</th><th>«Notado»</th><th></th></tr></thead>
+              <thead><tr><th>Fecha</th><th>Evento</th><th>Destinatario</th><th>Envío</th><th>“Notado”</th><th></th></tr></thead>
               <tbody>
               <?php foreach ($comunicaciones as $c) { ?>
                 <tr>
@@ -575,7 +612,7 @@ cabecera_personal($op['referencia'], 'operaciones');
             </table>
           </div>
         </div>
-      </section>
+      </div></details>
 
 <script>
 // Valor actual del dato elegido y campos extra del roleo

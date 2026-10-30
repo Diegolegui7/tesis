@@ -1,11 +1,22 @@
 <?php
-// SS5 · Avisos y comunicaciones: registro de envíos, resultado y confirmación «Notado»
+// SS5 · Avisos y comunicaciones: registro de envíos, resultado y confirmación “Notado”
 require_once __DIR__ . '/../partes/layout.php';
 $u = requerir_empleado('ver_operaciones');
 
 if (es_post()) {
     csrf_verificar();
     $accion = isset($_POST['accion']) ? $_POST['accion'] : '';
+    if ($accion === 'probar_correo') {
+        if (!puede('administrar_usuarios')) {
+            flash('error', 'Solo quien administra el sistema puede probar el envío de correo.');
+        } else {
+            $para = trim(isset($_POST['para']) ? $_POST['para'] : '');
+            list($ok, $error) = enviar_correo($para, 'ARPAFLU · Correo de prueba', "Este es un correo de prueba enviado desde ARPAFLU el " . date('d/m/Y H:i') . ".
+Si lo recibiste, el envío de avisos está bien configurado.");
+            flash($ok ? 'ok' : 'error', $ok ? (MAIL_MODO === 'smtp' ? 'Listo: el correo de prueba salió hacia ' . $para . '. Revisá que haya llegado.' : 'Modo de prueba: no salió ningún correo, pero la configuración es válida. Para enviar correos reales completá config.local.php.') : 'No se pudo enviar: ' . $error);
+        }
+        redirigir('avisos.php');
+    }
     $cid = (int) (isset($_POST['comunicacion_id']) ? $_POST['comunicacion_id'] : 0);
     $c = fila('SELECT c.*, o.cliente_id FROM comunicaciones c LEFT JOIN operaciones o ON o.id = c.operacion_id WHERE c.id = ?', [$cid]);
     if (!$c) {
@@ -16,7 +27,7 @@ if (es_post()) {
         $r = reenviar_aviso($cid);
         flash($r['ok'] ? 'ok' : 'error', $r['ok'] ? 'Aviso reenviado.' : 'No se pudo reenviar: ' . $r['error']);
     } elseif ($accion === 'notado_manual') {
-        flash(confirmar_notado($cid, $u['id']) ? 'ok' : 'error', 'Se registró el «Notado».');
+        flash(confirmar_notado($cid, $u['id']) ? 'ok' : 'error', 'Se registró el “Notado”.');
     }
     redirigir('avisos.php');
 }
@@ -66,9 +77,14 @@ cabecera_personal('Avisos', 'avisos');
       <div class="encabezado-pagina">
         <div>
           <h1>Avisos y comunicaciones</h1>
-          <p>Registro de cada correo enviado por el sistema, su resultado y la confirmación «Notado».
+          <p>Registro de cada correo enviado por el sistema, su resultado y la confirmación “Notado”.
             <?= MAIL_MODO === 'smtp' ? '' : '<span class="chico suave">(Modo de prueba: los correos no salen, solo quedan registrados.)</span>' ?></p>
         </div>
+        <?php if (puede('administrar_usuarios')) { ?>
+        <form class="acciones" action="avisos.php" method="post" style="display:flex;gap:6px;align-items:center"><?= csrf_campo() ?><input type="hidden" name="accion" value="probar_correo">
+          <input type="email" name="para" placeholder="Tu correo para probar" required style="width:200px;padding:6px 8px">
+          <button type="submit" class="boton boton-secundario" title="Envía un correo de prueba con la configuración actual (<?= e(MAIL_MODO) ?>)">Probar el envío de correo</button></form>
+        <?php } ?>
       </div>
 
       <?php if ($fallidos) { $f = $fallidos[0]; ?>
@@ -86,7 +102,7 @@ cabecera_personal('Avisos', 'avisos');
 
       <nav class="pestanas" role="tablist">
         <button class="pestana activa" data-pestana="todos" role="tab" aria-selected="true">Todos</button>
-        <button class="pestana" data-pestana="pendientes" role="tab" aria-selected="false">«Notado» pendientes <span class="contador"><?= count($pendientes) ?></span></button>
+        <button class="pestana" data-pestana="pendientes" role="tab" aria-selected="false">“Notado” pendientes <span class="contador"><?= count($pendientes) ?></span></button>
         <button class="pestana" data-pestana="fallidos" role="tab" aria-selected="false">No enviados <span class="contador"><?= count($fallidos) ?></span></button>
       </nav>
 
@@ -101,7 +117,7 @@ cabecera_personal('Avisos', 'avisos');
         </form>
         <div class="tabla-contenedor">
           <table>
-            <thead><tr><th>Fecha</th><th>Operación</th><th>Evento</th><th>Destinatario</th><th>Envío</th><th>«Notado»</th></tr></thead>
+            <thead><tr><th>Fecha</th><th>Operación</th><th>Evento</th><th>Destinatario</th><th>Envío</th><th>“Notado”</th></tr></thead>
             <tbody>
             <?php foreach ($todos as $c) { ?>
               <tr>

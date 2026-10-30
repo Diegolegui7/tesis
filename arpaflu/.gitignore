@@ -1,0 +1,6 @@
+# Datos propios de cada instalación (claves de correo): no se suben al repositorio
+config.local.php
+# Documentos cargados al probar el sistema
+almacen/operaciones/*
+almacen/cotizaciones/*
+!almacen/.htaccess

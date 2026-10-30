@@ -143,7 +143,7 @@ cabecera_personal('Clientes', 'clientes');
               </select>
             </div>
           </div>
-          <p class="ayuda">El contacto y el despachante reciben los avisos de cambios y se les pide la confirmación «Notado».</p>
+          <p class="ayuda">El contacto y el despachante reciben los avisos de cambios y se les pide la confirmación “Notado”.</p>
           <div class="pie-formulario">
             <a href="clientes.php" class="boton boton-secundario">Cancelar</a>
             <button type="submit" class="boton boton-primario">Guardar cliente</button>

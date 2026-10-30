@@ -1,6 +1,6 @@
 <?php
 // Instalación de la base de datos de prueba: crea la base, las tablas y los datos de ejemplo.
-// Lo usan instalar.php, demo/preparar.php (el .bat de la demostración) y el botón «Reiniciar demo».
+// Lo usan instalar.php, demo/preparar.php (el .bat de la demostración) y el botón “Reiniciar demo”.
 require_once __DIR__ . '/../config.php';
 
 function sentencias_sql($archivo)

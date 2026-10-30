@@ -31,7 +31,7 @@ foreach ($activas as $o) {
 
 // 3. Cosas que requieren atención
 foreach (consulta('SELECT c.destinatario_nombre, c.evento, o.id AS op_id, o.referencia FROM comunicaciones c JOIN operaciones o ON o.id = c.operacion_id WHERE c.requiere_notado = 1 AND c.notado_en IS NULL AND c.plazo_notado < NOW() ORDER BY c.plazo_notado LIMIT 4') as $r) {
-    $tareas[] = [3, $r['destinatario_nombre'] . ' todavía no confirmó un aviso', $r['referencia'] . ': ' . mb_strtolower($r['evento']) . '. Pasó el plazo; conviene reenviarlo o llamarlo.', 'operacion.php?id=' . $r['op_id'] . '#comunicaciones', 'Ver'];
+    $tareas[] = [3, $r['destinatario_nombre'] . ' todavía no confirmó un aviso', $r['referencia'] . ': ' . $r['evento'] . '. Pasó el plazo; conviene reenviarlo o llamarlo.', 'operacion.php?id=' . $r['op_id'] . '#comunicaciones', 'Ver'];
 }
 $fallidos = (int) valor('SELECT COUNT(*) FROM comunicaciones c WHERE c.estado_envio = "fallido" AND NOT EXISTS (SELECT 1 FROM comunicaciones r WHERE r.reenvio_de = c.id)');
 if ($fallidos) { $tareas[] = [3, $fallidos == 1 ? 'Un aviso no llegó a destino' : $fallidos . ' avisos no llegaron a destino', 'El correo fue rechazado. Revisá la dirección y reenviá el aviso.', 'avisos.php#fallidos', 'Ver avisos']; }
@@ -122,5 +122,5 @@ cabecera_personal('Inicio', 'inicio');
       </section>
       <?php } ?>
 
-      <p class="ayuda" style="margin-top:16px">¿Necesitás más datos (vencimientos, historial, cotizaciones)? <a href="panel.php">Ver el panel completo</a> o cambiá a la <a href="vista.php?modo=completa" data-vista="completa">vista completa</a> del menú.</p>
+      <p class="ayuda" style="margin-top:16px">¿Necesitás más datos (vencimientos, historial, cotizaciones)? <a href="vista.php?modo=completa">Ver todas las opciones</a>. ¿Dudas? Mirá la <a href="ayuda.php">Ayuda</a>.</p>
 <?php pie_personal(); ?>

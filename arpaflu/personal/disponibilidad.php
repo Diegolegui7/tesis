@@ -54,12 +54,12 @@ $destinos = consulta('SELECT nombre FROM puertos WHERE es_origen = 0 ORDER BY no
 $abiertos = 0;
 foreach ($embarques as $d) { if ($d['estado'] === 'abierta') { $abiertos++; } }
 
-cabecera_personal('Disponibilidad', 'disponibilidad');
+cabecera_personal('Lugar disponible', 'disponibilidad');
 ?>
       <div class="encabezado-pagina">
         <div>
-          <h1>Disponibilidad de espacio</h1>
-          <p>Embarques con lugar para vender. Los clientes habilitados solo pueden pedir reserva si hay cupo libre.</p>
+          <h1>Lugar disponible</h1>
+          <p>Los barcos en los que hay lugar para ofrecer. Los clientes habilitados solo pueden pedir si queda lugar libre.</p>
         </div>
         <div class="acciones">
           <?php if ($abiertos) { ?>
@@ -75,15 +75,15 @@ cabecera_personal('Disponibilidad', 'disponibilidad');
         <div class="tarjeta-cuerpo formulario">
           <div class="campos">
             <div class="campo"><label for="d-naviera">Naviera</label><select id="d-naviera" name="naviera_id" required><?php foreach ($navieras as $n) { ?><option value="<?= (int) $n['id'] ?>"><?= e($n['nombre']) ?></option><?php } ?></select></div>
-            <div class="campo"><label for="d-buque">Buque y viaje</label><input type="text" id="d-buque" name="buque" maxlength="120" required></div>
+            <div class="campo"><label for="d-buque">Barco y viaje</label><input type="text" id="d-buque" name="buque" maxlength="120" required></div>
             <div class="campo"><label for="d-pol">Puerto de carga</label><input type="text" id="d-pol" name="pol" maxlength="80" value="Buenos Aires"></div>
             <div class="campo"><label for="d-pod">Puerto de destino</label><input type="text" id="d-pod" name="pod" maxlength="80" list="d-puertos" required><datalist id="d-puertos"><?php foreach ($destinos as $d) { ?><option value="<?= e($d['nombre']) ?>"><?php } ?></datalist></div>
             <div class="campo"><label for="d-via">Ruta</label><select id="d-via" name="via"><option value="directa">Directa</option><option value="transbordo">Con transbordo</option></select></div>
             <div class="campo"><label for="d-tipo">Tipo de contenedor</label><select id="d-tipo" name="tipo_contenedor"><option>40' HC</option><option>20' DV</option><option>40' RF</option></select></div>
-            <div class="campo"><label for="d-etd">Salida (ETD)</label><input type="text" id="d-etd" name="etd" placeholder="dd/mm/aaaa" required></div>
-            <div class="campo"><label for="d-eta">Llegada (ETA)</label><input type="text" id="d-eta" name="eta" placeholder="dd/mm/aaaa"></div>
-            <div class="campo"><label for="d-cut">Cut-off documental</label><input type="text" id="d-cut" name="cutoff_doc" placeholder="dd/mm/aaaa hh:mm"></div>
-            <div class="campo"><label for="d-cupo">Cupo (contenedores)</label><input type="number" id="d-cupo" name="cupo" min="1" step="1" required></div>
+            <div class="campo"><label for="d-etd">Salida (<?= termino_p('ETD') ?>)</label><input type="text" id="d-etd" name="etd" placeholder="dd/mm/aaaa" required></div>
+            <div class="campo"><label for="d-eta">Llegada (<?= termino_p('ETA') ?>)</label><input type="text" id="d-eta" name="eta" placeholder="dd/mm/aaaa"></div>
+            <div class="campo"><label for="d-cut">Documentos hasta (<?= termino_p('Cut-off documental', 'cut-off') ?>)</label><input type="text" id="d-cut" name="cutoff_doc" placeholder="dd/mm/aaaa hh:mm"></div>
+            <div class="campo"><label for="d-cupo">Cuántos contenedores entran (cupo)</label><input type="number" id="d-cupo" name="cupo" min="1" step="1" required></div>
             <div class="campo"><label for="d-flete">Flete (US$ por contenedor)</label><input type="number" id="d-flete" name="flete" min="0" step="0.01" required></div>
             <div class="campo"><label for="d-libres">Días libres</label><input type="number" id="d-libres" name="dias_libres" min="0" step="1"></div>
           </div>

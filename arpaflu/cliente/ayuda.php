@@ -16,10 +16,10 @@ cabecera_cliente('Ayuda', 'ayuda');
 
     <h2 class="titulo-seccion" style="margin-top:0">¿Cómo funciona?</h2>
     <ol class="lista" style="list-style:none;counter-reset:paso">
-      <li style="display:block"><strong>1. Pedís lugar.</strong> En «Pedir una reserva» elegís un barco que tenga lugar y decís cuántos contenedores necesitás. Si no hay lugar, el portal te lo explica y no hace falta llenar nada.</li>
+      <li style="display:block"><strong>1. Pedís lugar.</strong> En “Pedir una reserva” elegís un barco que tenga lugar y decís cuántos contenedores necesitás. Si no hay lugar, el portal te lo explica y no hace falta llenar nada.</li>
       <li style="display:block"><strong>2. ARPAFLU responde.</strong> Revisa tu pedido y te avisa por mail. Si lo acepta, se convierte en una reserva.</li>
-      <li style="display:block"><strong>3. Seguís tu carga.</strong> En «Inicio» ves en qué paso está cada reserva. Un cuadro de color te dice qué tenés que hacer ahora; si no dice nada, no tenés que hacer nada.</li>
-      <li style="display:block"><strong>4. Respondés cuando te lo pedimos.</strong> Si hay una novedad, tocás «Notado». Si falta un papel, lo subís desde la reserva.</li>
+      <li style="display:block"><strong>3. Seguís tu carga.</strong> En “Inicio” ves en qué paso está cada reserva. Un cuadro de color te dice qué tenés que hacer ahora; si no dice nada, no tenés que hacer nada.</li>
+      <li style="display:block"><strong>4. Respondés cuando te lo pedimos.</strong> Si hay una novedad, tocás “Notado”. Si falta un papel, lo subís desde la reserva.</li>
     </ol>
 
     <h2 class="titulo-seccion">¿Con quién hablo?</h2>

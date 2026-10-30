@@ -911,3 +911,29 @@ body.portal .aviso { font-size: 1.02rem; }
 .cambiar-vista { display: block; margin-top: 8px; font-size: 0.85rem; color: #9fb7d6; text-decoration: underline; }
 .cambiar-vista:hover { color: #fff; }
 @media (max-width: 640px) { .tareas li { flex-direction: column; align-items: flex-start; } }
+
+/* Ficha de la reserva (personal): qué sigue, pasos y secciones plegables */
+.que-sigue { border: 2px solid var(--primario); }
+.etiqueta-sigue { margin: 0 0 4px; font-size: 0.8rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; color: var(--primario); }
+.titulo-sigue { margin: 0; font-size: 1.35rem; }
+.boton-grande { padding: 12px 22px; font-size: 1.05rem; min-height: 46px; }
+.pasos-reserva { list-style: none; margin: 8px 0 0; padding: 0; }
+.pasos-reserva li { display: flex; gap: 12px; align-items: flex-start; padding: 7px 0; }
+.pasos-reserva .punto { flex: none; width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center; font-size: 0.85rem; font-weight: 700; border: 2px solid var(--borde); color: var(--texto-suave); background: var(--superficie); }
+.pasos-reserva li.ok .punto { background: var(--ok); border-color: var(--ok); color: #fff; }
+.pasos-reserva li.ahora .punto { border-color: var(--primario); color: var(--primario); box-shadow: 0 0 0 4px var(--primario-suave); }
+.pasos-reserva li.ahora strong { color: var(--primario); }
+.acordeon { background: var(--superficie); border: 1px solid var(--borde); border-radius: 10px; margin: 0 0 8px; }
+.acordeon > summary { cursor: pointer; list-style: none; display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 12px 16px; }
+.acordeon > summary::-webkit-details-marker { display: none; }
+.acordeon > summary::before { content: "▸"; margin-right: 8px; color: var(--texto-suave); transition: transform .15s; }
+.acordeon[open] > summary::before { transform: rotate(90deg); }
+.acordeon > summary .ac-t { font-weight: 700; flex: 1; }
+.acordeon > summary .ac-h { color: var(--texto-suave); font-size: 0.85rem; }
+.acordeon-cuerpo { padding: 4px 16px 16px; }
+.acordeon-cuerpo > .tarjeta { box-shadow: none; }
+.aviso-ok { background: #e3f3ea; border: 1px solid #b6dfc7; color: #14532d; }
+@media (max-width: 640px) { .acordeon > summary .ac-h { display: none; } }
+
+.tabla-contenedor td:last-child { white-space: normal; }
+.tabla-contenedor td form { margin: 2px 4px 2px 0; }

@@ -1,5 +1,5 @@
 <?php
-// Portal de clientes · Ficha de la reserva, confirmación «Notado» y envío de documentos (P10 / RF-11 / RF-17)
+// Portal de clientes · Ficha de la reserva, confirmación “Notado” y envío de documentos (P10 / RF-11 / RF-17)
 require_once __DIR__ . '/../partes/layout.php';
 require_once __DIR__ . '/../inc/operaciones.php';
 $u = requerir_cliente();
@@ -15,7 +15,7 @@ $abierta = !in_array($op['estado'], ['zarpado', 'cancelada'], true);
 if (es_post()) {
     csrf_verificar();
     $accion = isset($_POST['accion']) ? $_POST['accion'] : '';
-    if ($accion === 'notado') {                                       // P10 · Confirmar «Notado»
+    if ($accion === 'notado') {                                       // P10 · Confirmar “Notado”
         $cid = (int) (isset($_POST['comunicacion_id']) ? $_POST['comunicacion_id'] : 0);
         $c = fila("SELECT id FROM comunicaciones WHERE id = ? AND operacion_id = ? AND destinatario_tipo = 'cliente'", [$cid, $id]);
         if ($c && confirmar_notado($cid, $u['id'])) {
@@ -160,7 +160,7 @@ cabecera_cliente($op['referencia'], 'reservas');
       <?= csrf_campo() ?><input type="hidden" name="accion" value="documento">
       <div class="tarjeta-cabecera"><h2>Enviar un documento a ARPAFLU</h2></div>
       <div class="tarjeta-cuerpo formulario">
-        <p class="ayuda" style="margin:0">Elegí qué documento es, adjuntá el archivo (un PDF, una foto o una planilla) y tocá «Enviar». ARPAFLU recibe un aviso.</p>
+        <p class="ayuda" style="margin:0">Elegí qué documento es, adjuntá el archivo (un PDF, una foto o una planilla) y tocá “Enviar”. ARPAFLU recibe un aviso.</p>
         <div class="campos">
           <div class="campo">
             <label for="env-tipo">¿Qué documento es?</label>

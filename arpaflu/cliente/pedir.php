@@ -23,7 +23,7 @@ if (es_post()) {
     $r = crear_solicitud($u, isset($_POST['disponibilidad_id']) ? $_POST['disponibilidad_id'] : 0, isset($_POST['cantidad']) ? $_POST['cantidad'] : 0,
         isset($_POST['carga']) ? $_POST['carga'] : '', isset($_POST['comentario']) ? $_POST['comentario'] : '');
     if ($r[0]) {
-        flash('ok', '¡Listo! Recibimos tu pedido. ARPAFLU lo revisa y te avisa por mail. Mientras tanto, lo ves en «Mis pedidos de reserva».');
+        flash('ok', '¡Listo! Recibimos tu pedido. ARPAFLU lo revisa y te avisa por mail. Mientras tanto, lo ves en “Mis pedidos de reserva”.');
         redirigir('reservas.php#pedidos');
     }
     flash('error', $r[1]);

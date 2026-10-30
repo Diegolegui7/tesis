@@ -1,5 +1,5 @@
 <?php
-// SS1 · «¿Olvidaste tu clave?»: avisa a los administradores para que generen una clave nueva. La respuesta es la misma exista o no la cuenta.
+// SS1 · “¿Olvidaste tu clave?”: avisa a los administradores para que generen una clave nueva. La respuesta es la misma exista o no la cuenta.
 require_once __DIR__ . '/inc/auth.php';
 require_once __DIR__ . '/inc/avisos.php';
 require_once __DIR__ . '/inc/demo.php';
@@ -16,7 +16,7 @@ if (es_post()) {
                     'operacion_id' => null, 'cambio_id' => null, 'evento' => 'Pedido de clave nueva', 'tipo' => 'otro',
                     'nombre' => $adm['nombre'], 'correo' => $adm['correo'], 'dest_tipo' => 'interno',
                     'asunto' => $cta['nombre'] . ' pidió una clave nueva',
-                    'cuerpo' => $cta['nombre'] . ' (' . $cta['correo'] . ') dijo que olvidó su clave. Generá una nueva en Usuarios y permisos → «Restablecer clave» y avisale.',
+                    'cuerpo' => $cta['nombre'] . ' (' . $cta['correo'] . ') dijo que olvidó su clave. Generá una nueva en Usuarios y permisos → “Restablecer clave” y avisale.',
                     'notado' => false,
                 ]);
             }
